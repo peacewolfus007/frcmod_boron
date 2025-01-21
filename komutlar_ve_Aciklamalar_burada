@@ -1,0 +1,106 @@
+ source /home/myname/amber16/amber.sh
+ export DISPLAY=:0
+
+
+******************************************************************************
+*bor.dat frcmod dosyası önceden hazır olmalı
+*frcmod hangi türde yazılmışsa o türe uygun mol2 dosyası önceden hazır olmalı
+******************************************************************************
+source leaprc.gaff
+loadamberparams bor.dat
+x=loadmol2 bor.mol2
+saveAmberParm x x.prmtop x.inpcrd
+check x
+saveoff x x.lib
+quit
+
+****************************************************************************
+* x.prmtop ve x.inpcrd dosyaları bu şekilde hazırlanmalı içleri boş olmamalı
+****************************************************************************
+* min.in dosyası önceden hazır olmalı
+* heatxx.in dosyaları önceden hazır olmalı
+***yukarıda hazırlanan x.prmtop ve x.inpcrd dosyaları aşağıda kullanılacak
+****************************************************************************
+
+MINIMIZATION:
+				sander -O -i min.in -o min.out -p x.prmtop -c x.inpcrd -r min1.ncrst
+inputs: -i -p -c
+		-i min. in -p x.prmtop -c x.inpcrd
+
+Outputs: -o -r  -?
+		min.out  min1.ncrst --> (kullanılacak aşağıda) mdinfo
+
+sander -O -i heat1.in -o heat1.out -p x.prmtop -c min1.ncrst -r heat1.ncrst -x heat1.nc 
+
+
+
+
+inputs:
+Outputs:  -x   -r	-o
+		heat1.nc heat1.ncrst--> (kullanılacak aşağıda) heat1.out
+
+sander -O -i heat2.in  -o heat2.out  -p x.prmtop -c heat1.ncrst -r heat2.ncrst -x heat2.nc
+
+Outputs:  -x   -r	-o
+		heat2.nc heat2.ncrst--> (kullanılacak aşağıda) heat2.out
+
+sander -O -i heat3.in  -o heat3.out  -p x.prmtop -c heat2.ncrst -r heat3.ncrst -x heat3.nc
+
+
+***not:bor.p dosyası kullanıldı....
+
+
+
+sander -O -i min.in -o min.out -p x.prmtop -c x.inpcrd -r min1.ncrst
+sander -O -i heat1.in  -o heat1.out  -p x.prmtop -c min1.ncrst  -r heat1.ncrst -x heat1.nc 
+sander -O -i heat2.in  -o heat2.out  -p x.prmtop -c heat1.ncrst -r heat2.ncrst -x heat2.nc
+sander -O -i heat3.in  -o heat3.out  -p x.prmtop -c heat2.ncrst -r heat3.ncrst -x heat3.nc
+sander -O -i heat4.in  -o heat4.out  -p x.prmtop -c heat3.ncrst -r heat4.ncrst -x heat4.nc
+sander -O -i heat5.in  -o heat5.out  -p x.prmtop -c heat4.ncrst -r heat5.ncrst -x heat5.nc
+sander -O -i heat6.in  -o heat6.out  -p x.prmtop -c heat5.ncrst -r heat6.ncrst -x heat6.nc
+sander -O -i heat7.in  -o heat7.out  -p x.prmtop -c heat6.ncrst -r heat7.ncrst -x heat7.nc
+sander -O -i heat8.in  -o heat8.out  -p x.prmtop -c heat7.ncrst -r heat8.ncrst -x heat8.nc
+sander -O -i heat9.in  -o heat9.out  -p x.prmtop -c heat8.ncrst -r heat9.ncrst -x heat9.nc
+sander -O -i heat10.in  -o heat10.out  -p x.prmtop -c heat9.ncrst -r heat10.ncrst -x heat10.nc
+sander -O -i heat11.in  -o heat11.out  -p x.prmtop -c heat10.ncrst -r heat11.ncrst -x heat11.nc
+
+
+
+
+mkdir analiz
+cd analiz
+
+process_mdout.perl ../heat1.out ../heat2.out ../heat3.out ../heat4.out ../heat4.out ../heat6.out ../heat7.out ../heat8.out ../heat9.out ../heat10.out
+
+
+
+sander -O -i equil.in -p x.prmtop -c heat7.ncrst -r equil1.ncrst -o equil1.out -x  equil1.nc
+sander -O -i equil.in -p x.prmtop -c equil1.ncrst -r equil2.ncrst -o equil2.out -x equil2.nc
+sander -O -i equil.in -p x.prmtop -c equil2.ncrst -r equil3.ncrst -o equil3.out -x equil3.nc
+sander -O -i equil.in -p x.prmtop -c equil3.ncrst -r equil4.ncrst -o equil4.out -x equil4.nc
+sander -O -i equil.in -p x.prmtop -c equil4.ncrst -r equil5.ncrst -o equil5.out -x equil5.nc
+sander -O -i equil.in -p x.prmtop -c equil5.ncrst -r equil6.ncrst -o equil6.out -x equil6.nc
+sander -O -i equil.in -p x.prmtop -c equil6.ncrst -r equil7.ncrst -o equil7.out -x equil7.nc
+sander -O -i equil.in -p x.prmtop -c equil7.ncrst -r equil8.ncrst -o equil8.out -x equil8.nc
+sander -O -i equil.in -p x.prmtop -c equil8.ncrst -r equil9.ncrst -o equil9.out -x equil9.nc
+sander -O -i equil.in -p x.prmtop -c equil9.ncrst -r equil10.ncrst -o equil10.out -x equil10.nc
+
+*****************************************************
+MPIRUN TEST :
+
+MPIRUN INSTALL:
+tcsh
+sudo apt install mpich
+Y
+TEST:
+mpirun -np 4 sander -O -i equil_indirgenmis.in -p x.prmtop -c equil9.ncrst -r mpirn10.ncrst -o mprun10.out -x mprun10.nc
+
+111 saniye sürdü.
+**********************
+
+sander -O -i equil_indirgenmis.in -p x.prmtop -c equil9.ncrst -r mpirn11.ncrst -o mprun11.out -x mprun11.nc
+85 saniye sürdü :D :D :D tersi olmalıydı 
+
+****************************************************
+
+minimizasyonu pdb ye çevirmek için: ambpdb -p x.prmtop -c heat1.ncrst > output.pdb
